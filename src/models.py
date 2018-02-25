@@ -250,7 +250,7 @@ class BLSTMEncoder(nn.Module):
 """
 Main module for Natural Language Inference
 """
-class NLINet(nn.Module):
+class NLI_HYPOTHS_Net(nn.Module):
     def __init__(self, config):
         super(NLINet, self).__init__()
 
@@ -286,12 +286,11 @@ class NLINet(nn.Module):
                 nn.Linear(self.fc_dim, self.n_classes)
                 )
 
-    def forward(self, s1, s2):
+    def forward(self, s2):
         # s1 : (s1, s1_len)
-        u = self.encoder(s1)
         v = self.encoder(s2)
 
-        features = torch.cat((u, v, torch.abs(u-v), u*v), 1)
+        features = v 
         output = self.classifier(features)
         return output
 
