@@ -56,19 +56,23 @@ def get_word_vecs(vocab, embdsfile):
 
 def build_vocab(txt, embdsfile):
   vocab = get_vocab(txt)
+  vocab.add("OOV")
   word_vecs = get_word_vecs(vocab, embdsfile)
   print('Vocab size : {0}'.format(len(word_vecs)))
   return word_vecs 
 
 def get_batch(batch, word_vec):
   # sent in batch in decreasing order of lengths (bsize, max_len, word_dim)
-  lengths = np.array([len(x) for x in batch])
+  lengths = np.array([len(x.split()) for x in batch])
   max_len = np.max(lengths)
   embed = np.zeros((max_len, len(batch), len(word_vec[word_vec.keys()[0]])))
 
   for i in range(len(batch)):
     sent = batch[i].split()
     for j in range(len(batch[i].split())):
-      embed[j, i, :] = word_vec[sent[j]]
+      if sent[j] not in word_vec:
+        embed[j, i, :] = word_vec["OOV"]
+      else:
+        embed[j, i, :] = word_vec[sent[j]]
 
   return torch.from_numpy(embed).float(), lengths
