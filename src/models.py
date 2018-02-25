@@ -252,7 +252,7 @@ Main module for Natural Language Inference
 """
 class NLI_HYPOTHS_Net(nn.Module):
     def __init__(self, config):
-        super(NLINet, self).__init__()
+        super(NLI_HYPOTHS_Net, self).__init__()
 
         # classifier
         self.nonlinear_fc = config['nonlinear_fc']

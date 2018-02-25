@@ -114,12 +114,12 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
   for stidx in range(0, len(hypoths), params.batch_size):
     # prepare batch
     hypoths_batch, hypoths_len = get_batch(hypoths[stidx:stidx + params.batch_size], word_vec)
-    hypoths_batch, tgt_batch = None, None
+    tgt_batch = None
     if params.gpu_id > 0: 
       hypoths_batch = Variable(hypoths_batch.cuda())
       tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size])).cuda()
     else:
-      hypoths_batch = Variable(hypoth_batch)
+      hypoths_batch = Variable(hypoths_batch)
       tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size]))
 
     k = hypoths_batch.size(1)  # actual batch size
