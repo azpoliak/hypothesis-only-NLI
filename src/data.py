@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import pdb
 
 def get_nli_hypoth(nlipath, max_train_sents, max_val_sents, max_test_sents):
@@ -63,10 +64,11 @@ def get_batch(batch, word_vec):
   # sent in batch in decreasing order of lengths (bsize, max_len, word_dim)
   lengths = np.array([len(x) for x in batch])
   max_len = np.max(lengths)
-  embed = np.zeros((max_len, len(batch), 300))
+  embed = np.zeros((max_len, len(batch), len(word_vec[word_vec.keys()[0]])))
 
   for i in range(len(batch)):
-    for j in range(len(batch[i])):
-      embed[j, i, :] = word_vec[batch[i][j]]
+    sent = batch[i].split()
+    for j in range(len(batch[i].split())):
+      embed[j, i, :] = word_vec[sent[j]]
 
   return torch.from_numpy(embed).float(), lengths
