@@ -52,6 +52,10 @@ def get_args():
   parser.add_argument("--gpu_id", type=int, default=0, help="GPU ID")
   parser.add_argument("--seed", type=int, default=1234, help="seed")
 
+
+  #misc
+  parser.add_argument("--verbose", type=int, default=1, help="Verbose output")
+
   params, _ = parser.parse_known_args()
 
   # print parameters passed, and all parameters
@@ -79,6 +83,7 @@ def get_model_configs(params, n_words):
     'nonlinear_fc'   :  params.nonlinear_fc   ,
     'encoder_type'   :  params.encoder_type   ,
     'use_cuda'       :  params.gpu_id > 0     ,
+    'verbose'        :  params.verbose > 0    ,
   }
 
   # model
@@ -90,7 +95,7 @@ def get_model_configs(params, n_words):
                                              str(encoder_types)
   return config_nli_model
 
-def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
+def trainepoch(epoch, train, optimizer, params, word_vec, nli_net, loss_fn):
   print('\nTRAINING : Epoch ' + str(epoch))
   nli_net.train()
   all_costs = []
@@ -111,6 +116,9 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
       and 'sgd' in params.optimizer else optimizer.param_groups[0]['lr']
   print('Learning rate : {0}'.format(optimizer.param_groups[0]['lr']))
 
+  trained_sents = 0
+
+  start_time = time.time()
   for stidx in range(0, len(hypoths), params.batch_size):
     # prepare batch
     hypoths_batch, hypoths_len = get_batch(hypoths[stidx:stidx + params.batch_size], word_vec)
@@ -134,7 +142,7 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
     # loss
     loss = loss_fn(output, tgt_batch)
     all_costs.append(loss.data[0])
-    words_count += (s1_batch.nelement() + s2_batch.nelement()) / params.word_emb_dim
+    words_count += hypoths_batch.nelement() / params.word_emb_dim
 
     # backward
     optimizer.zero_grad()
@@ -169,10 +177,17 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
       last_time = time.time()
       words_count = 0
       all_costs = []
-  train_acc = round(100 * correct/len(s1), 2)
+
+    if params.verbose:
+      trained_sents += k
+      print "epoch: %d -- trained %d / %d sentences -- %f ms per sentence" % (epoch, trained_sents, len(hypoths),
+                                                                            1000 * (time.time() - start_time) / trained_sents) 
+      #sys.stdout.flush()
+
+  train_acc = round(100 * correct/len(hypoths), 2)
   print('results : epoch {0} ; mean accuracy train : {1}'
           .format(epoch, train_acc))
-  return train_acc
+  return train_acc, nli_net
 
 
 def main(args):
@@ -226,10 +241,8 @@ def main(args):
   epoch = 1
 
   while not stop_training and epoch <= args.n_epochs:
-    train_acc = trainepoch(epoch, train, optimizer, args, word_vecs, nli_net)
-    #epoch, train, optimizer, params, word_vec, nli_net)
+    train_acc, nli_net = trainepoch(epoch, train, optimizer, args, word_vecs, nli_net, loss_fn)
     #eval_acc = evaluate(epoch, 'valid')
-    pdb.set_trace()
     epoch += 1
 
 
