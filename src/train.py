@@ -12,7 +12,7 @@ import torch.nn as nn
 
 from data import get_nli_hypoth
 from data import build_vocab
-from models import NLINet
+from models import NLI_HYPOTHS_Net
 
 def get_args():
   parser = argparse.ArgumentParser(description='Training NLI model based on just hypothesis sentence')
@@ -88,8 +88,90 @@ def get_model_configs(params, n_words):
                  #'InnerAttentionNAACLEncoder', 'ConvNetEncoder', 'LSTMEncoder']
   assert params.encoder_type in encoder_types, "encoder_type must be in " + \
                                              str(encoder_types)
-
   return config_nli_model
+
+def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
+  print('\nTRAINING : Epoch ' + str(epoch))
+  nli_net.train()
+  all_costs = []
+  logs = []
+  words_count = 0
+
+  last_time = time.time()
+  correct = 0.
+  # shuffle the data
+  permutation = np.random.permutation(len(train['hypoths']))
+
+  hypoths = train['hypoths'][permutation]
+  target = train['lbls'][permutation]
+
+  optimizer.param_groups[0]['lr'] = optimizer.param_groups[0]['lr'] * params.decay if epoch>1\
+      and 'sgd' in params.optimizer else optimizer.param_groups[0]['lr']
+  print('Learning rate : {0}'.format(optimizer.param_groups[0]['lr']))
+
+  for stidx in range(0, len(s1), params.batch_size):
+    # prepare batch
+    hypoths_batch, hypoths_len = get_batch(hypoths[stidx:stidx + params.batch_size], word_vec)
+    hypoths_batch, tgt_batch = None, None
+    if params.gpu_id > 0: 
+      hypoths_batch = Variable(hypoths_batch.cuda())
+      tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size])).cuda()
+    else
+      hypoths_batch = Variable(hypoth_batch)
+      tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size]))
+
+    k = hypoths_batch.size(1)  # actual batch size
+
+    # model forward
+    output = nli_net((hypoths_batch, hypoths_len))
+
+    pred = output.data.max(1)[1]
+    correct += pred.long().eq(tgt_batch.data.long()).cpu().sum()
+    assert len(pred) == len(hypoths[stidx:stidx + params.batch_size])
+
+    # loss
+    loss = loss_fn(output, tgt_batch)
+    all_costs.append(loss.data[0])
+    words_count += (s1_batch.nelement() + s2_batch.nelement()) / params.word_emb_dim
+
+    # backward
+    optimizer.zero_grad()
+    loss.backward()
+
+    # gradient clipping (off by default)
+    shrink_factor = 1
+    total_norm = 0
+
+    for p in nli_net.parameters():
+      if p.requires_grad:
+        p.grad.data.div_(k)  # divide by the actual batch size
+        total_norm += p.grad.data.norm() ** 2
+    total_norm = np.sqrt(total_norm)
+
+    if total_norm > params.max_norm:
+        shrink_factor = params.max_norm / total_norm
+    current_lr = optimizer.param_groups[0]['lr'] # current lr (no external "lr", for adam)
+    optimizer.param_groups[0]['lr'] = current_lr * shrink_factor # just for update
+
+    # optimizer step
+    optimizer.step()
+    optimizer.param_groups[0]['lr'] = current_lr
+
+    if len(all_costs) == 100:
+      logs.append('{0} ; loss {1} ; sentence/s {2} ; words/s {3} ; accuracy train : {4}'.format(
+                            stidx, round(np.mean(all_costs), 2),
+                            int(len(all_costs) * params.batch_size / (time.time() - last_time)),
+                            int(words_count * 1.0 / (time.time() - last_time)),
+                            round(100.*correct/(stidx+k), 2)))
+      print(logs[-1])
+      last_time = time.time()
+      words_count = 0
+      all_costs = []
+  train_acc = round(100 * correct/len(s1), 2)
+  print('results : epoch {0} ; mean accuracy train : {1}'
+          .format(epoch, train_acc))
+  return train_acc
+
 
 def main(args):
   print "main"
@@ -112,8 +194,40 @@ def main(args):
 
   nli_model_configs = get_model_configs(args, len(word_vecs))
 
-  nli_net = NLINet(nli_model_configs)
+  nli_net = NLI_HYPOTHS_Net(nli_model_configs)
   print(nli_net)
+
+  # loss
+  weight = torch.FloatTensor(params.n_classes).fill_(1)
+  loss_fn = nn.CrossEntropyLoss(weight=weight)
+  loss_fn.size_average = False
+
+  # optimizer
+  optim_fn, optim_params = get_optimizer(params.optimizer)
+  optimizer = optim_fn(nli_net.parameters(), **optim_params)
+
+  if args.gpu_id > 0:
+    nli_net.cuda()
+    loss_fn.cuda()
+
+  """
+  TRAIN
+  """
+  val_acc_best = -1e10
+  adam_stop = False
+  stop_training = False
+  lr = optim_params['lr'] if 'sgd' in params.optimizer else None
+
+  """
+  Train model on Natural Language Inference task
+  """
+  epoch = 1
+
+  while not stop_training and epoch <= params.n_epochs:
+    train_acc = trainepoch(epoch)
+    eval_acc = evaluate(epoch, 'valid')
+    epoch += 1
+
 
 if __name__ == '__main__':
   args = get_args()
