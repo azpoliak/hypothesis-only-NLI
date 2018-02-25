@@ -12,6 +12,7 @@ import torch.nn as nn
 
 from data import get_nli_hypoth
 from data import build_vocab
+from models import NLINet
 
 def get_args():
   parser = argparse.ArgumentParser(description='Training NLI model based on just hypothesis sentence')
@@ -22,6 +23,10 @@ def get_args():
   parser.add_argument("--outputdir", type=str, default='savedir/', help="Output directory")
   parser.add_argument("--outputmodelname", type=str, default='model.pickle')
 
+  # data
+  parser.add_argument("--max_train_sents", type=int, default=10000000, help="Maximum number of training examples")
+  parser.add_argument("--max_val_sents", type=int, default=10000000, help="Maximum number of validation/dev examples")
+  parser.add_argument("--max_test_sents", type=int, default=10000000, help="Maximum number of test examples")
 
   # training
   parser.add_argument("--n_epochs", type=int, default=20)
@@ -55,6 +60,36 @@ def get_args():
 
   return params
 
+def get_model_configs(params, n_words):
+  """
+  MODEL
+  """
+  # model config
+  config_nli_model = {
+    'n_words'        :  n_words               ,
+    'word_emb_dim'   :  params.word_emb_dim   ,
+    'enc_lstm_dim'   :  params.enc_lstm_dim   ,
+    'n_enc_layers'   :  params.n_enc_layers   ,
+    'dpout_model'    :  params.dpout_model    ,
+    'dpout_fc'       :  params.dpout_fc       ,
+    'fc_dim'         :  params.fc_dim         ,
+    'bsize'          :  params.batch_size     ,
+    'n_classes'      :  params.n_classes      ,
+    'pool_type'      :  params.pool_type      ,
+    'nonlinear_fc'   :  params.nonlinear_fc   ,
+    'encoder_type'   :  params.encoder_type   ,
+    'use_cuda'       :  params.gpu_id > 0     ,
+  }
+
+  # model
+  encoder_types = ['BLSTMEncoder']
+                 #, 'BLSTMprojEncoder', 'BGRUlastEncoder',
+                 #'InnerAttentionMILAEncoder', 'InnerAttentionYANGEncoder',
+                 #'InnerAttentionNAACLEncoder', 'ConvNetEncoder', 'LSTMEncoder']
+  assert params.encoder_type in encoder_types, "encoder_type must be in " + \
+                                             str(encoder_types)
+
+  return config_nli_model
 
 def main(args):
   print "main"
@@ -69,10 +104,16 @@ def main(args):
   """
   DATA
   """
-  train, val, test = get_nli_hypoth(args.nlipath)
+  train, val, test = get_nli_hypoth(args.nlipath, args.max_train_sents, \
+                                    args.max_val_sents, args.max_test_sents)
 
   word_vecs = build_vocab(train['hypoths'] + val['hypoths'] + test['hypoths'] , args.embdfile)
-  pdb.set_trace()
+  args.word_emb_dim = len(word_vecs[word_vecs.keys()[0]])
+
+  nli_model_configs = get_model_configs(args, len(word_vecs))
+
+  nli_net = NLINet(nli_model_configs)
+  print(nli_net)
 
 if __name__ == '__main__':
   args = get_args()

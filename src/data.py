@@ -1,7 +1,7 @@
 import numpy as np
 import pdb
 
-def get_nli_hypoth(nlipath):
+def get_nli_hypoth(nlipath, max_train_sents, max_val_sents, max_test_sents):
   labels = {}
   hypoths = {}
 
@@ -27,9 +27,9 @@ def get_nli_hypoth(nlipath):
       hypoths[data_split].append(hypoth)
 
 
-  train = {'lbls': labels['train'], 'hypoths' : hypoths['train']}
-  val = {'lbls': labels['val'], 'hypoths' : hypoths['val']}
-  test = {'lbls': labels['test'], 'hypoths' : hypoths['test']}
+  train = {'lbls': labels['train'][0:max_train_sents], 'hypoths' : hypoths['train'][0:max_train_sents]}
+  val = {'lbls': labels['val'][0:max_val_sents], 'hypoths' : hypoths['val'][0:max_val_sents]}
+  test = {'lbls': labels['test'][0:max_test_sents], 'hypoths' : hypoths['test'][0:max_test_sents]}
 
   return train, val, test
 
