@@ -10,8 +10,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn
 
-from data import get_nli_hypoth
-from data import build_vocab
+from data import get_nli_hypoth, build_vocab, get_batch
 from models import NLI_HYPOTHS_Net
 from mutils import get_optimizer
 
@@ -103,14 +102,16 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
   # shuffle the data
   permutation = np.random.permutation(len(train['hypoths']))
 
-  hypoths = train['hypoths'][permutation]
-  target = train['lbls'][permutation]
+  hypoths, target = [], [] 
+  for i in permutation:
+    hypoths.append(train['hypoths'][i])
+    target.append(train['lbls'][i])
 
   optimizer.param_groups[0]['lr'] = optimizer.param_groups[0]['lr'] * params.decay if epoch>1\
       and 'sgd' in params.optimizer else optimizer.param_groups[0]['lr']
   print('Learning rate : {0}'.format(optimizer.param_groups[0]['lr']))
 
-  for stidx in range(0, len(s1), params.batch_size):
+  for stidx in range(0, len(hypoths), params.batch_size):
     # prepare batch
     hypoths_batch, hypoths_len = get_batch(hypoths[stidx:stidx + params.batch_size], word_vec)
     hypoths_batch, tgt_batch = None, None
