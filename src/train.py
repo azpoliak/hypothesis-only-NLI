@@ -13,6 +13,7 @@ import torch.nn as nn
 from data import get_nli_hypoth
 from data import build_vocab
 from models import NLI_HYPOTHS_Net
+from mutils import get_optimizer
 
 def get_args():
   parser = argparse.ArgumentParser(description='Training NLI model based on just hypothesis sentence')
@@ -116,7 +117,7 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net):
     if params.gpu_id > 0: 
       hypoths_batch = Variable(hypoths_batch.cuda())
       tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size])).cuda()
-    else
+    else:
       hypoths_batch = Variable(hypoth_batch)
       tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size]))
 
@@ -198,12 +199,12 @@ def main(args):
   print(nli_net)
 
   # loss
-  weight = torch.FloatTensor(params.n_classes).fill_(1)
+  weight = torch.FloatTensor(args.n_classes).fill_(1)
   loss_fn = nn.CrossEntropyLoss(weight=weight)
   loss_fn.size_average = False
 
   # optimizer
-  optim_fn, optim_params = get_optimizer(params.optimizer)
+  optim_fn, optim_params = get_optimizer(args.optimizer)
   optimizer = optim_fn(nli_net.parameters(), **optim_params)
 
   if args.gpu_id > 0:
@@ -216,16 +217,18 @@ def main(args):
   val_acc_best = -1e10
   adam_stop = False
   stop_training = False
-  lr = optim_params['lr'] if 'sgd' in params.optimizer else None
+  lr = optim_params['lr'] if 'sgd' in args.optimizer else None
 
   """
   Train model on Natural Language Inference task
   """
   epoch = 1
 
-  while not stop_training and epoch <= params.n_epochs:
-    train_acc = trainepoch(epoch)
-    eval_acc = evaluate(epoch, 'valid')
+  while not stop_training and epoch <= args.n_epochs:
+    train_acc = trainepoch(epoch, train, optimizer, args, word_vecs, nli_net)
+    #epoch, train, optimizer, params, word_vec, nli_net)
+    #eval_acc = evaluate(epoch, 'valid')
+    pdb.set_trace()
     epoch += 1
 
 
