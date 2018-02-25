@@ -49,7 +49,7 @@ def get_args():
   parser.add_argument("--pool_type", type=str, default='max', help="max or mean")
 
   # gpu
-  parser.add_argument("--gpu_id", type=int, default=0, help="GPU ID")
+  parser.add_argument("--gpu_id", type=int, default=-1, help="GPU ID")
   parser.add_argument("--seed", type=int, default=1234, help="seed")
 
 
@@ -82,7 +82,7 @@ def get_model_configs(params, n_words):
     'pool_type'      :  params.pool_type      ,
     'nonlinear_fc'   :  params.nonlinear_fc   ,
     'encoder_type'   :  params.encoder_type   ,
-    'use_cuda'       :  params.gpu_id > 0     ,
+    'use_cuda'       :  params.gpu_id > -1     ,
     'verbose'        :  params.verbose > 0    ,
   }
 
@@ -123,7 +123,7 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net, loss_fn):
     # prepare batch
     hypoths_batch, hypoths_len = get_batch(hypoths[stidx:stidx + params.batch_size], word_vec)
     tgt_batch = None
-    if params.gpu_id > 0: 
+    if params.gpu_id > -1: 
       hypoths_batch = Variable(hypoths_batch.cuda())
       tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size])).cuda()
     else:
@@ -223,7 +223,7 @@ def main(args):
   optim_fn, optim_params = get_optimizer(args.optimizer)
   optimizer = optim_fn(nli_net.parameters(), **optim_params)
 
-  if args.gpu_id > 0:
+  if args.gpu_id > -1:
     nli_net.cuda()
     loss_fn.cuda()
 
