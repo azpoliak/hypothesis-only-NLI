@@ -14,6 +14,13 @@ unzip snli_1.0.zip
 echo "Reformatting SNLI dataset"
 python convert_snli.py
 
+echo "Downloading GloVe"
+mkdir embds
+cd embds
+curl -LO http://nlp.stanford.edu/data/glove.840B.300d.zip
+jar xvf glove.840B.300d.zip 
+#rm glove.840B.300d.zip
+
 #echo "Downloading multi-SNLI"
 #wget http://www.nyu.edu/projects/bowman/multinli/multinli_1.0.zip
 #unzip multinli_1.0

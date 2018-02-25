@@ -11,11 +11,13 @@ from torch.autograd import Variable
 import torch.nn as nn
 
 from data import get_nli_hypoth
+from data import build_vocab
 
 def get_args():
   parser = argparse.ArgumentParser(description='Training NLI model based on just hypothesis sentence')
 
   # paths
+  parser.add_argument("--embdfile", type=str, default='../data/embds/glove.840B.300d.txt', help="File containin the word embeddings")
   parser.add_argument("--nlipath", type=str, default='../data/snli_1.0/', help="NLI data path (SNLI or MultiNLI)")
   parser.add_argument("--outputdir", type=str, default='savedir/', help="Output directory")
   parser.add_argument("--outputmodelname", type=str, default='model.pickle')
@@ -68,6 +70,8 @@ def main(args):
   DATA
   """
   train, val, test = get_nli_hypoth(args.nlipath)
+
+  word_vecs = build_vocab(train['hypoths'] + val['hypoths'] + test['hypoths'] , args.embdfile)
   pdb.set_trace()
 
 if __name__ == '__main__':

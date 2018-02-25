@@ -1,3 +1,5 @@
+import numpy as np
+import pdb
 
 def get_nli_hypoth(nlipath):
   labels = {}
@@ -30,3 +32,30 @@ def get_nli_hypoth(nlipath):
   test = {'lbls': labels['test'], 'hypoths' : hypoths['test']}
 
   return train, val, test
+
+def get_vocab(txt):
+  vocab = set()
+  for sent in txt:
+    for word in sent.split():
+      vocab.add(word)
+  return vocab
+
+def get_word_vecs(vocab, embdsfile):
+  word_vecs = {}
+  with open(embdsfile) as f:
+    for line in f:
+      word, vec = line.split(' ', 1)
+      if word in vocab:
+        word_vecs[word] = np.array(list(map(float, vec.split())))
+  print('Found {0}(/{1}) words with vectors'.format(
+            len(word_vecs), len(vocab)))
+  return word_vecs
+
+
+
+def build_vocab(txt, embdsfile):
+  vocab = get_vocab(txt)
+  word_vecs = get_word_vecs(vocab, embdsfile)
+  print('Vocab size : {0}'.format(len(word_vecs)))
+  return word_vecs 
+
