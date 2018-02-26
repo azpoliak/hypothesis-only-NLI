@@ -189,6 +189,61 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net, loss_fn):
           .format(epoch, train_acc))
   return train_acc, nli_net
 
+def evaluate(epoch, valid, optimizer, params, word_vec, nli_net, eval_type='valid', final_eval=False):
+  nli_net.eval()
+  correct = 0.
+  global val_acc_best, lr, stop_training, adam_stop
+
+  if eval_type == 'valid':
+    print('\n{0} : Epoch {1}'.format(eval_type, epoch))
+
+  hypoths = valid['hypoths'] #if eval_type == 'valid' else test['s1']
+  target = valid['lbls']
+
+  for i in range(0, len(hypoths), params.batch_size):
+    # prepare batch
+    hypoths_batch, hypoths_len = get_batch(hypoths[i:i + params.batch_size], word_vec)
+    tgt_batch = None
+    if params.gpu_id > -1:
+      hypoths_batch = Variable(hypoths_batch.cuda())
+      tgt_batch = tgt_batch.cuda()
+    else:
+      hypoths_batch = Variable(hypoths_batch)
+      tgt_batch = Variable(torch.LongTensor(target[i:i + params.batch_size]))
+
+    # model forward
+    output = nli_net((hypoths_batch, hypoths_len))
+
+    pred = output.data.max(1)[1]
+    correct += pred.long().eq(tgt_batch.data.long()).cpu().sum()
+
+  # save model
+  eval_acc = round(100 * correct / len(hypoths), 2)
+  if final_eval:
+    print('finalgrep : accuracy {0} : {1}'.format(eval_type, eval_acc))
+  else:
+    print('togrep : results : epoch {0} ; mean accuracy {1} :\
+              {2}'.format(epoch, eval_type, eval_acc))
+
+  if eval_type == 'valid' and epoch <= params.n_epochs:
+    if eval_acc > val_acc_best:
+      print('saving model at epoch {0}'.format(epoch))
+      if not os.path.exists(params.outputdir):
+        os.makedirs(params.outputdir)
+      torch.save(nli_net, os.path.join(params.outputdir, params.outputmodelname))
+      val_acc_best = eval_acc
+    else:
+      if 'sgd' in params.optimizer:
+        optimizer.param_groups[0]['lr'] = optimizer.param_groups[0]['lr'] / params.lrshrink
+        print('Shrinking lr by : {0}. New lr = {1}'.format(params.lrshrink,
+                              optimizer.param_groups[0]['lr']))
+        if optimizer.param_groups[0]['lr'] < params.minlr:
+          stop_training = True
+      if 'adam' in params.optimizer:
+        # early stopping (at 2nd decrease in accuracy)
+        stop_training = adam_stop
+        adam_stop = True
+  return eval_acc
 
 def main(args):
   print "main"
@@ -230,6 +285,7 @@ def main(args):
   """
   TRAIN
   """
+  global val_acc_best, lr, stop_training, adam_stop
   val_acc_best = -1e10
   adam_stop = False
   stop_training = False
@@ -242,7 +298,7 @@ def main(args):
 
   while not stop_training and epoch <= args.n_epochs:
     train_acc, nli_net = trainepoch(epoch, train, optimizer, args, word_vecs, nli_net, loss_fn)
-    #eval_acc = evaluate(epoch, 'valid')
+    eval_acc = evaluate(epoch, val, optimizer, args, word_vecs, nli_net, 'valid')
     epoch += 1
 
 
