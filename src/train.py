@@ -185,8 +185,8 @@ def trainepoch(epoch, train, optimizer, params, word_vec, nli_net, loss_fn):
       #sys.stdout.flush()
 
   train_acc = round(100 * correct/len(hypoths), 2)
-  print('results : epoch {0} ; mean accuracy train : {1}'
-          .format(epoch, train_acc))
+  print('results : epoch {0} ; mean accuracy train : {1}, loss : {2}'
+          .format(epoch, train_acc, round(np.mean(all_costs), 2)))
   return train_acc, nli_net
 
 def evaluate(epoch, valid, optimizer, params, word_vec, nli_net, eval_type='valid', final_eval=False):
