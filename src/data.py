@@ -2,35 +2,40 @@ import numpy as np
 import torch
 import pdb
 
-def get_nli_hypoth(nlipath, max_train_sents, max_val_sents, max_test_sents):
+def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
+  labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+  data = {'lbls': [], 'hypoths': []}
+
+  lbls = open(lbls_file).readlines()
+  srcs = open(srcs_file).readlines()
+  assert (len(lbls) == len(srcs), "%s: %s labels and source files are not same length" % (lbls_file, data_split))
+
+  added_sents = 0
+  for i in range(len(lbls)):
+    lbl = lbls[i].strip()
+    hypoth = srcs[i].split("|||")[-1].strip()
+
+    if lbl not in labels_to_int:
+      print "bad label: %s" % (lbl)
+      continue
+
+    if added_sents >= max_sents:
+      continue
+
+    data['lbls'].append(labels_to_int[lbl])
+    data['hypoths'].append(hypoth)  
+    added_sents += 1
+
+  return data
+
+def get_nli_hypoth(train_lbls_file, train_src_file, val_lbls_file, val_src_file, \
+                   test_lbls_file, test_src_file, max_train_sents, max_val_sents, max_test_sents):
   labels = {}
   hypoths = {}
 
-  labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
-
-  for data_split in ['train', 'val', 'test']:
-    labels[data_split], hypoths[data_split] = [], []
-
-    lbls = open("%s/cl_snli_%s_lbl_file" % (nlipath, data_split)).readlines()
-    srcs = open("%s/cl_snli_%s_source_file" % (nlipath, data_split)).readlines()
-
-    assert (len(lbls) == len(srcs), "SNIL %s labels and source files are not same length" % (data_split))
-
-    for i in range(len(lbls)):
-      lbl = lbls[i].strip()
-      hypoth = srcs[i].split("|||")[-1].strip()
-
-      if lbl not in labels_to_int:
-        print "bad label: %s" % (lbl)
-        continue
-
-      labels[data_split].append(labels_to_int[lbl])
-      hypoths[data_split].append(hypoth)
-
-
-  train = {'lbls': labels['train'][0:max_train_sents], 'hypoths' : hypoths['train'][0:max_train_sents]}
-  val = {'lbls': labels['val'][0:max_val_sents], 'hypoths' : hypoths['val'][0:max_val_sents]}
-  test = {'lbls': labels['test'][0:max_test_sents], 'hypoths' : hypoths['test'][0:max_test_sents]}
+  train = extract_from_file(train_lbls_file, train_src_file, max_train_sents, "train")
+  val = extract_from_file(val_lbls_file, val_src_file, max_val_sents, "val")
+  test = extract_from_file(test_lbls_file, test_src_file, max_test_sents, "test")
 
   return train, val, test
 
