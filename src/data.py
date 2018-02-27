@@ -19,7 +19,7 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
       print "bad label: %s" % (lbl)
       continue
 
-    if added_sents > max_sents:
+    if added_sents >= max_sents:
       continue
 
     data['lbls'].append(labels_to_int[lbl])
