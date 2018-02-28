@@ -32,3 +32,10 @@ jar xvf glove.840B.300d.zip
 #mdkir compositional-rte
 #cd compositional-rte
 #svn export https://github.com/ishita-dg/ScrambleTests/trunk/testData/
+
+echo "Downloading MPE"
+mkdir mpe
+curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_train.txt -o mpe/mpe_train.txt
+curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_dev.txt -o mpe/mpe_dev.txt
+curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_test.txt -o mpe/mpe_test.txt
+
