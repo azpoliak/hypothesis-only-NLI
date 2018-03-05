@@ -55,8 +55,11 @@ rm SICK.zip
 cd ../
 python convert_sick.py
 
-#echo "Downloading SciTail"
-#mkdir scitail
-#cd scitail
-#
-#cd ../
+echo "Downloading SciTail"
+mkdir scitail
+cd scitail
+wget http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.zip
+unzip SciTailV1.zip
+rm SciTailV1.zip
+cd ../
+python convert_scitail.py
