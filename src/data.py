@@ -3,7 +3,7 @@ import torch
 import pdb
 
 def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
-  labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+  labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2, 'entailed': 0, 'not-entailed': 1}
   data = {'lbls': [], 'hypoths': []}
 
   lbls = open(lbls_file).readlines()

@@ -258,7 +258,8 @@ def main(args):
   """
   np.random.seed(args.seed)
   torch.manual_seed(args.seed)
-  torch.cuda.manual_seed(args.seed)
+  if args.gpu_id > -1:
+    torch.cuda.manual_seed(args.seed)
 
   """
   DATA
