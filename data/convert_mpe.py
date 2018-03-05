@@ -11,7 +11,7 @@ for f in ["train", "dev", "test"]:
       continue
     line = line.split("\t")
     assert (len(line) == 10, "MPE %s file has a bad line at line numbers %d" % (f, line_count))
-    lbls.append(line[-1].strip())
+    lbls.append(line[-1].strip().split()[-1])
     hypoths.append("|||" + " ".join(nltk.word_tokenize(line[5].strip())))
 
   if f == "dev":
@@ -29,4 +29,3 @@ for f in ["train", "dev", "test"]:
   lbl_out.close()
   source_out.close()
 
-pdb.set_trace()
