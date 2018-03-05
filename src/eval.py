@@ -42,6 +42,7 @@ def get_args():
   parser.add_argument("--fc_dim", type=int, default=512, help="nhid of fc layers")
   parser.add_argument("--n_classes", type=int, default=3, help="entailment/neutral/contradiction")
   parser.add_argument("--pool_type", type=str, default='max', help="max or mean")
+  parser.add_argument("--batch_size", type=int, default=64)
 
   # gpu
   parser.add_argument("--gpu_id", type=int, default=-1, help="GPU ID")
@@ -58,131 +59,6 @@ def get_args():
   print(params)
 
   return params
-
-def get_model_configs(params, n_words):
-  """
-  MODEL
-  """
-  # model config
-  config_nli_model = {
-    'n_words'        :  n_words               ,
-    'word_emb_dim'   :  params.word_emb_dim   ,
-    'enc_lstm_dim'   :  params.enc_lstm_dim   ,
-    'n_enc_layers'   :  params.n_enc_layers   ,
-    'dpout_model'    :  params.dpout_model    ,
-    'dpout_fc'       :  params.dpout_fc       ,
-    'fc_dim'         :  params.fc_dim         ,
-    'bsize'          :  params.batch_size     ,
-    'n_classes'      :  params.n_classes      ,
-    'pool_type'      :  params.pool_type      ,
-    'nonlinear_fc'   :  params.nonlinear_fc   ,
-    'encoder_type'   :  params.encoder_type   ,
-    'use_cuda'       :  params.gpu_id > -1     ,
-    'verbose'        :  params.verbose > 0    ,
-  }
-
-  # model
-  encoder_types = ['BLSTMEncoder']
-                 #, 'BLSTMprojEncoder', 'BGRUlastEncoder',
-                 #'InnerAttentionMILAEncoder', 'InnerAttentionYANGEncoder',
-                 #'InnerAttentionNAACLEncoder', 'ConvNetEncoder', 'LSTMEncoder']
-  assert params.encoder_type in encoder_types, "encoder_type must be in " + \
-                                             str(encoder_types)
-  return config_nli_model
-
-def trainepoch(epoch, train, optimizer, params, word_vec, nli_net, loss_fn):
-  print('\nTRAINING : Epoch ' + str(epoch))
-  nli_net.train()
-  all_costs = []
-  logs = []
-  words_count = 0
-
-  last_time = time.time()
-  correct = 0.
-  # shuffle the data
-  permutation = np.random.permutation(len(train['hypoths']))
-
-  hypoths, target = [], [] 
-  for i in permutation:
-    hypoths.append(train['hypoths'][i])
-    target.append(train['lbls'][i])
-
-  optimizer.param_groups[0]['lr'] = optimizer.param_groups[0]['lr'] * params.decay if epoch>1\
-      and 'sgd' in params.optimizer else optimizer.param_groups[0]['lr']
-  print('Learning rate : {0}'.format(optimizer.param_groups[0]['lr']))
-
-  trained_sents = 0
-
-  start_time = time.time()
-  for stidx in range(0, len(hypoths), params.batch_size):
-    # prepare batch
-    hypoths_batch, hypoths_len = get_batch(hypoths[stidx:stidx + params.batch_size], word_vec)
-    tgt_batch = None
-    if params.gpu_id > -1: 
-      hypoths_batch = Variable(hypoths_batch.cuda())
-      tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size])).cuda()
-    else:
-      hypoths_batch = Variable(hypoths_batch)
-      tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size]))
-
-    k = hypoths_batch.size(1)  # actual batch size
-
-    # model forward
-    output = nli_net((hypoths_batch, hypoths_len))
-
-    pred = output.data.max(1)[1]
-    correct += pred.long().eq(tgt_batch.data.long()).cpu().sum()
-    assert len(pred) == len(hypoths[stidx:stidx + params.batch_size])
-
-    # loss
-    loss = loss_fn(output, tgt_batch)
-    all_costs.append(loss.data[0])
-    words_count += hypoths_batch.nelement() / params.word_emb_dim
-
-    # backward
-    optimizer.zero_grad()
-    loss.backward()
-
-    # gradient clipping (off by default)
-    shrink_factor = 1
-    total_norm = 0
-
-    for p in nli_net.parameters():
-      if p.requires_grad:
-        p.grad.data.div_(k)  # divide by the actual batch size
-        total_norm += p.grad.data.norm() ** 2
-    total_norm = np.sqrt(total_norm)
-
-    if total_norm > params.max_norm:
-        shrink_factor = params.max_norm / total_norm
-    current_lr = optimizer.param_groups[0]['lr'] # current lr (no external "lr", for adam)
-    optimizer.param_groups[0]['lr'] = current_lr * shrink_factor # just for update
-
-    # optimizer step
-    optimizer.step()
-    optimizer.param_groups[0]['lr'] = current_lr
-
-    if len(all_costs) == 100:
-      logs.append('{0} ; loss {1} ; sentence/s {2} ; words/s {3} ; accuracy train : {4}'.format(
-                            stidx, round(np.mean(all_costs), 2),
-                            int(len(all_costs) * params.batch_size / (time.time() - last_time)),
-                            int(words_count * 1.0 / (time.time() - last_time)),
-                            round(100.*correct/(stidx+k), 2)))
-      print(logs[-1])
-      last_time = time.time()
-      words_count = 0
-      all_costs = []
-
-    if params.verbose:
-      trained_sents += k
-      print "epoch: %d -- trained %d / %d sentences -- %f ms per sentence" % (epoch, trained_sents, len(hypoths),
-                                                                            1000 * (time.time() - start_time) / trained_sents) 
-      #sys.stdout.flush()
-
-  train_acc = round(100 * correct/len(hypoths), 2)
-  print('results : epoch {0} ; mean accuracy train : {1}, loss : {2}'
-          .format(epoch, train_acc, round(np.mean(all_costs), 2)))
-  return train_acc, nli_net
 
 def evaluate(epoch, valid, params, word_vec, nli_net, eval_type, pred_file):
   nli_net.eval()
@@ -216,7 +92,6 @@ def evaluate(epoch, valid, params, word_vec, nli_net, eval_type, pred_file):
   # save model
   eval_acc = round(100 * correct / len(hypoths), 2)
   print('finalgrep : accuracy {0} : {1}'.format(eval_type, eval_acc))
-              {2}'.format(epoch, eval_type, eval_acc))
 
   if eval_type == 'valid' and epoch <= params.n_epochs:
     if eval_acc > val_acc_best:
@@ -248,8 +123,6 @@ def main(args):
   word_vecs = build_vocab(train['hypoths'] + val['hypoths'] + test['hypoths'] , args.embdfile)
   args.word_emb_dim = len(word_vecs[word_vecs.keys()[0]])
 
-  nli_model_configs = get_model_configs(args, len(word_vecs))
-
   nli_net = torch.load(args.model) 
   print(nli_net)
 
@@ -268,7 +141,6 @@ def main(args):
   epoch = 1
 
   for pair in [(train, 'train'), (val, 'val'), (test, 'test')]:
-args.outputdir + "/" + args.pred_file
     eval_acc = evaluate(0, pair[0], args, word_vecs, nli_net, pair[1], "%s/%s_%s" % (args.outputdir, pair[0], args.pred_file))
     #epoch, valid, params, word_vec, nli_net, eval_type
 
