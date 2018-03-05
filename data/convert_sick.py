@@ -18,7 +18,7 @@ for line in open("sick/SICK.txt"):
   if tag not in DATA.keys():
     print "Bad tag: %s" % (tag)
   hyp = "|||" + " ".join(nltk.word_tokenize(line[2].strip()))
-  lbl = line[3]
+  lbl = line[3].lower()
   DATA[tag]['lbls'].append(lbl)
   DATA[tag]['hypoths'].append(hyp)
   tag_set.add(line[-1])
