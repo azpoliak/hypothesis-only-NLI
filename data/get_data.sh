@@ -45,3 +45,18 @@ cd add-one-rte
 wget http://www.seas.upenn.edu/~nlp/resources/AN-composition.tgz
 tar -zxvf AN-composition.tgz 
 rm AN-composition.tgz 
+
+echo "Downloading SICK"
+mkdir sick
+cd sick
+wget http://clic.cimec.unitn.it/composes/materials/SICK.zip
+unzip SICK.zip
+rm SICK.zip
+cd ../
+python convert_sick.py
+
+#echo "Downloading SciTail"
+#mkdir scitail
+#cd scitail
+#
+#cd ../
