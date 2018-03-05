@@ -32,3 +32,34 @@ jar xvf glove.840B.300d.zip
 #mdkir compositional-rte
 #cd compositional-rte
 #svn export https://github.com/ishita-dg/ScrambleTests/trunk/testData/
+
+echo "Downloading MPE"
+mkdir mpe
+curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_train.txt -o mpe/mpe_train.txt
+curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_dev.txt -o mpe/mpe_dev.txt
+curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_test.txt -o mpe/mpe_test.txt
+
+echo "Downloading add-1 RTE"
+mkdir add-one-rte
+cd add-one-rte
+wget http://www.seas.upenn.edu/~nlp/resources/AN-composition.tgz
+tar -zxvf AN-composition.tgz 
+rm AN-composition.tgz 
+
+echo "Downloading SICK"
+mkdir sick
+cd sick
+wget http://clic.cimec.unitn.it/composes/materials/SICK.zip
+unzip SICK.zip
+rm SICK.zip
+cd ../
+python convert_sick.py
+
+echo "Downloading SciTail"
+mkdir scitail
+cd scitail
+wget http://data.allenai.org.s3.amazonaws.com/downloads/SciTailV1.zip
+unzip SciTailV1.zip
+rm SciTailV1.zip
+cd ../
+python convert_scitail.py
