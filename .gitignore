@@ -2,3 +2,8 @@
 
 data/snli_1.0/*
 data/embds/*
+data/add-one-rte/*
+data/mpe/*
+
+overleaf-paper/*
+paper/*
