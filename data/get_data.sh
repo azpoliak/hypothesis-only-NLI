@@ -39,3 +39,9 @@ curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/
 curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_dev.txt -o mpe/mpe_dev.txt
 curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_test.txt -o mpe/mpe_test.txt
 
+echo "Downloading add-1 RTE"
+mkdir add-one-rte
+cd add-one-rte
+wget http://www.seas.upenn.edu/~nlp/resources/AN-composition.tgz
+tar -zxvf AN-composition.tgz 
+rm AN-composition.tgz 
