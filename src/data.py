@@ -9,7 +9,7 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
   elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file:
     labels_to_int = {'entailed': 0, 'not-entailed': 1}
   elif "scitail" in lbls_file:
-    labels_to_int = {'entailed': 0, 'neutral': 1}
+    labels_to_int = {'entailment': 0, 'neutral': 1}
   else:
     print "Invalid lbls_file: %s" % (lbls_file)
 
