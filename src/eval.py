@@ -90,7 +90,7 @@ def evaluate(epoch, valid, params, word_vec, nli_net, eval_type, pred_file):
 
     all_preds = output.data.max(1)[1]
     for pred in all_preds:
-      out_preds_f.write(IDX2LBL[pred] + "\n")
+      out_preds_f.write(IDX2LBL[pred[0]] + "\n")
     correct += all_preds.long().eq(tgt_batch.data.long()).cpu().sum()
 
   out_preds_f.close()
@@ -127,7 +127,7 @@ def main(args):
   elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file:
     IDX2LBL = {0: 'entailed', 1: 'not-entailed'}
   elif "scitail" in lbls_file:
-    IDX2LBL = {0: 'entailed', 1: 'neutral'}
+    IDX2LBL = {0: 'entailment', 1: 'neutral'}
 
   nli_net = torch.load(args.model) 
   print(nli_net)
