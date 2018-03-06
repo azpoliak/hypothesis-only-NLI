@@ -147,7 +147,7 @@ def main(args):
   epoch = 1
 
   for pair in [(train, 'train'), (val, 'val'), (test, 'test')]:
-    args.batch_size = len(pair[0]['lbls'])
+    #args.batch_size = len(pair[0]['lbls'])
     eval_acc = evaluate(0, pair[0], args, word_vecs, nli_net, pair[1], "%s/%s_%s" % (args.outputdir, pair[1], args.pred_file))
     #epoch, valid, params, word_vec, nli_net, eval_type
 
