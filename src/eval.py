@@ -2,7 +2,6 @@ import os
 import sys
 import time
 import argparse
-import pdb
 
 import numpy as np
 
@@ -13,6 +12,8 @@ import torch.nn as nn
 from data import get_nli_hypoth, build_vocab, get_batch
 from models import NLI_HYPOTHS_Net
 from mutils import get_optimizer
+
+IDX2LBL = {}
 
 def get_args():
   parser = argparse.ArgumentParser(description='Training NLI model based on just hypothesis sentence')
@@ -71,6 +72,8 @@ def evaluate(epoch, valid, params, word_vec, nli_net, eval_type, pred_file):
   hypoths = valid['hypoths'] #if eval_type == 'valid' else test['s1']
   target = valid['lbls']
 
+  out_preds_f = open(pred_file, "wb")
+
   for i in range(0, len(hypoths), params.batch_size):
     # prepare batch
     hypoths_batch, hypoths_len = get_batch(hypoths[i:i + params.batch_size], word_vec)
@@ -85,21 +88,15 @@ def evaluate(epoch, valid, params, word_vec, nli_net, eval_type, pred_file):
     # model forward
     output = nli_net((hypoths_batch, hypoths_len))
 
-    pred = output.data.max(1)[1]
-    import pdb; pdb.set_trace()
-    correct += pred.long().eq(tgt_batch.data.long()).cpu().sum()
+    all_preds = output.data.max(1)[1]
+    for pred in all_preds:
+      out_preds_f.write(IDX2LBL[pred] + "\n")
+    correct += all_preds.long().eq(tgt_batch.data.long()).cpu().sum()
 
+  out_preds_f.close()
   # save model
   eval_acc = round(100 * correct / len(hypoths), 2)
   print('finalgrep : accuracy {0} : {1}'.format(eval_type, eval_acc))
-
-  if eval_type == 'valid' and epoch <= params.n_epochs:
-    if eval_acc > val_acc_best:
-      print('saving model at epoch {0}'.format(epoch))
-      if not os.path.exists(params.outputdir):
-        os.makedirs(params.outputdir)
-      torch.save(nli_net, os.path.join(params.outputdir, params.outputmodelname))
-      val_acc_best = eval_acc
 
   return eval_acc
 
@@ -123,6 +120,15 @@ def main(args):
   word_vecs = build_vocab(train['hypoths'] + val['hypoths'] + test['hypoths'] , args.embdfile)
   args.word_emb_dim = len(word_vecs[word_vecs.keys()[0]])
 
+  lbls_file = args.train_lbls_file
+  global IDX2LBL
+  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file:
+    IDX2LBL = {0: 'entailment', 1: 'neutral', 2: 'contradiction'}
+  elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file:
+    IDX2LBL = {0: 'entailed', 1: 'not-entailed'}
+  elif "scitail" in lbls_file:
+    IDX2LBL = {0: 'entailed', 1: 'neutral'}
+
   nli_net = torch.load(args.model) 
   print(nli_net)
 
@@ -141,7 +147,8 @@ def main(args):
   epoch = 1
 
   for pair in [(train, 'train'), (val, 'val'), (test, 'test')]:
-    eval_acc = evaluate(0, pair[0], args, word_vecs, nli_net, pair[1], "%s/%s_%s" % (args.outputdir, pair[0], args.pred_file))
+    args.batch_size = len(pair[0]['lbls'])
+    eval_acc = evaluate(0, pair[0], args, word_vecs, nli_net, pair[1], "%s/%s_%s" % (args.outputdir, pair[1], args.pred_file))
     #epoch, valid, params, word_vec, nli_net, eval_type
 
 
