@@ -275,9 +275,9 @@ def main(args):
 
   lbls_file = args.train_lbls_file
   if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file:
-    nli_model_configs.n_classes = 3
+    nli_model_configs["n_classes"] = 3
   elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file or "scitail" in lbls_file:
-    nli_model_configs.n_classes = 2
+    nli_model_configs["n_classes"] = 2
 
   nli_net = NLI_HYPOTHS_Net(nli_model_configs)
   print(nli_net)
