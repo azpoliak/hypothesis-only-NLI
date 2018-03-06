@@ -80,7 +80,7 @@ def evaluate(epoch, valid, params, word_vec, nli_net, eval_type, pred_file):
     tgt_batch = None
     if params.gpu_id > -1:
       hypoths_batch = Variable(hypoths_batch.cuda())
-      tgt_batch = tgt_batch.cuda()
+      tgt_batch = Variable(torch.LongTensor(target[stidx:stidx + params.batch_size])).cuda()
     else:
       hypoths_batch = Variable(hypoths_batch)
       tgt_batch = Variable(torch.LongTensor(target[i:i + params.batch_size]))
