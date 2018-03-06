@@ -3,7 +3,16 @@ import torch
 import pdb
 
 def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
-  labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2, 'entailed': 0, 'not-entailed': 1}
+  labels_to_int = None
+  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file:
+    labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
+  elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file:
+    labels_to_int = {'entailed': 0, 'not-entailed': 1}
+  elif "scitail" in lbls_file:
+    labels_to_int = {'entailed': 0, 'neutral': 1}
+  else:
+    print "Invalid lbls_file: %s" % (lbls_file)
+
   data = {'lbls': [], 'hypoths': []}
 
   lbls = open(lbls_file).readlines()
