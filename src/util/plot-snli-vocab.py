@@ -1,6 +1,5 @@
 import pdb
 import argparse
-
 import pandas as pd
 
 def get_args():
@@ -81,11 +80,12 @@ def get_vocab_counts(data):
   for correct in vocab_counts:
     for lbl in vocab_counts[correct]:
       for word in all_vocab.difference(vocab_counts[correct][lbl].keys()):
-        print word
+        #print word
         df = df.append({'gold-lbl': lbl, 'correct': correct, 'word': word, 'count': 0}, ignore_index=True)
   
 
   return df, all_vocab
+
 
 def main():
   
@@ -94,8 +94,8 @@ def main():
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
     df, vocab = get_vocab_counts(data)
-    pdb.set_trace()
-    
+    df.to_pickle("tokens_count.pkl") 
+    #pdb.set_trace()
 
 
 if __name__ == '__main__':
