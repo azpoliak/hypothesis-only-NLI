@@ -14,7 +14,7 @@ def get_args():
   args = parser.parse_args()
   return args
 
-def compute_acc(gold_f, pred_f, data_split):
+def compute_acc(gold_f, pred_f, data_split, nli_data):
   gold_lbls = open(gold_f).readlines()
   pred_lbls = open(pred_f).readlines()
 
@@ -37,10 +37,12 @@ def compute_acc(gold_f, pred_f, data_split):
       correct[gold_lbl] += 1
 
   for key in correct:  
-    print "%s Accuracy on %s: %f" % (data_split, key, correct[key] / float(tot_lbl[key]))
+    print "%s\t%s Accuracy on %s: %f" % (nli_data, data_split, key, correct[key] / float(tot_lbl[key]))
   for key in tot_lbl:  
-    print "%s MAJ on %s: %f" % (data_split, key, tot_lbl[key] / float(tot_lbl['total']))
-  
+    print "%s\t%s MAJ on %s: %f" % (nli_data, data_split, key, tot_lbl[key] / float(tot_lbl['total']))
+ 
+  print "Remember: MAJ on total is the highest for the labels"
+  print 
   print
 
 def main():
@@ -50,11 +52,11 @@ def main():
   print "Results for %s" % (args.nli_data)
 
   if args.train_gold_lbl and args.train_pred_lbl:
-    compute_acc(args.train_gold_lbl, args.train_pred_lbl, 'train')
+    compute_acc(args.train_gold_lbl, args.train_pred_lbl, 'train', args.nli_data)
   if args.dev_gold_lbl and args.dev_pred_lbl:
-    compute_acc(args.dev_gold_lbl, args.dev_pred_lbl, 'dev')
+    compute_acc(args.dev_gold_lbl, args.dev_pred_lbl, 'dev', args.nli_data)
   if args.test_gold_lbl and args.test_pred_lbl:
-    compute_acc(args.test_gold_lbl, args.test_pred_lbl, 'test')
+    compute_acc(args.test_gold_lbl, args.test_pred_lbl, 'test', args.nli_data)
 
 
 
