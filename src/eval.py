@@ -122,7 +122,7 @@ def main(args):
 
   lbls_file = args.train_lbls_file
   global IDX2LBL
-  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file:
+  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file or "joci" in lbls_file:
     IDX2LBL = {0: 'entailment', 1: 'neutral', 2: 'contradiction'}
   elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file:
     IDX2LBL = {0: 'entailed', 1: 'not-entailed'}
