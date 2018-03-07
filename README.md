@@ -30,6 +30,7 @@ The most useful command line arguments are:
 - `val_src_file`   NLI validation (dev) data source file
 - `test_lbls_file` NLI test data labels file
 - `test_src_file`  NLI test data source file 
+- `remove_dup` 1 to remove duplicate hypothesis from train, 0 to keep them in. 0 is the default
 
 To see a description of more command line arguments, run `src/train.py --help`.
 
