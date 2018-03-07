@@ -63,3 +63,11 @@ unzip SciTailV1.zip
 rm SciTailV1.zip
 cd ../
 python convert_scitail.py
+
+echo "Downloading JOCI"
+mkdir joci
+cd joci
+wget http://decomp.net/wp-content/uploads/2015/08/joci.zip
+unzip joci.zip
+cd data
+tar -zxvf joci.tar.gz

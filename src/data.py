@@ -2,9 +2,23 @@ import numpy as np
 import torch
 import pdb
 
-def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
+def get_duplicate_hypths(srcs):
+  hyps_counts = {}
+  for line in srcs:
+    hyp = line.split("|||")[-1].strip()
+    if hyp not in hyps_count:
+      hyps_count[hyp] = 0
+    hyps_count[hyp] += 1
+
+  hyps_dup = set()
+  for key,item in hyps_count.items():
+    if item > 1:
+      hyps_dup.add(item)
+  return hyps_dup
+
+def extract_from_file(lbls_file, srcs_file, max_sents, data_split, remove_dup):
   labels_to_int = None
-  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file:
+  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file or "joci" in lbls_file:
     labels_to_int = {'entailment': 0, 'neutral': 1, 'contradiction': 2}
   elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file:
     labels_to_int = {'entailed': 0, 'not-entailed': 1}
@@ -17,12 +31,22 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
 
   lbls = open(lbls_file).readlines()
   srcs = open(srcs_file).readlines()
+
+  hyps_set = set()
+  if remove_dup:
+    hyps_set = get_duplicate_hypths(srcs)
+
   assert (len(lbls) == len(srcs), "%s: %s labels and source files are not same length" % (lbls_file, data_split))
+  num_duplicate_hyps = 0
 
   added_sents = 0
   for i in range(len(lbls)):
     lbl = lbls[i].strip()
     hypoth = srcs[i].split("|||")[-1].strip()
+
+    if remove_dup and hypoth in hyps_set:
+      num_duplicate_hyps += 1
+      continue
 
     if lbl not in labels_to_int:
       print "bad label: %s" % (lbl)
@@ -35,16 +59,19 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split):
     data['hypoths'].append(hypoth)  
     added_sents += 1
 
+  if remove_dup:
+    print "Removed %d duplicate hypotheses out of %d total" % (num_duplicate_hyps, len(lbls))
+
   return data
 
 def get_nli_hypoth(train_lbls_file, train_src_file, val_lbls_file, val_src_file, \
-                   test_lbls_file, test_src_file, max_train_sents, max_val_sents, max_test_sents):
+                   test_lbls_file, test_src_file, max_train_sents, max_val_sents, max_test_sents, remove_dup=False):
   labels = {}
   hypoths = {}
 
-  train = extract_from_file(train_lbls_file, train_src_file, max_train_sents, "train")
-  val = extract_from_file(val_lbls_file, val_src_file, max_val_sents, "val")
-  test = extract_from_file(test_lbls_file, test_src_file, max_test_sents, "test")
+  train = extract_from_file(train_lbls_file, train_src_file, max_train_sents, "train", remove_dup)
+  val = extract_from_file(val_lbls_file, val_src_file, max_val_sents, "val", remove_dup)
+  test = extract_from_file(test_lbls_file, test_src_file, max_test_sents, "test", remove_dup)
 
   return train, val, test
 
