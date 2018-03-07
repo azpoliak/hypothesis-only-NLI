@@ -8,7 +8,7 @@ role2str = {"sentient" : "sentient", "aware of being involved" : "aware", "exist
             "existed before" : "existed before", "existed during" : "existed during", "chose to be involved" : "volitional", \
             "changed possession" : "chang. possession", "describes the location": "location", "stationary during" : "stationary during" , \
             "made physical contact with someone or something" : "physical contact", "caused a change" : "changed", \
-            "changes location during" : "moved", "altered or somehow changed during" : "changed", \
+            "changes location during" : "moved", "altered or somehow changed during" : "chang. state", \
             "existed as a physical object" : "physically existed", "caused the" : "caused", "used in carrying out" : "used in"}
 
 
@@ -51,7 +51,7 @@ def main(args):
   role2idx = get_idx_by_role(data)
 
   role2pos_count = {}
-  print "\small{%s}\t& %s\t& %s \\\\ \\hline" % ("Proto-Role", "Hypothesis-model", "MAJ")
+  print "\small{%s}\t& \small{%s}\t& \small{%s}\t& \small{\\%% Change} \\\\ \\hline" % ("Proto-Role", "Hypothesis-model", "MAJ")
   for role in  AGENT_ROLES + PATIENT_ROLES:
     locs = role2idx[role]
     if role not in role2pos_count:
@@ -63,7 +63,11 @@ def main(args):
       if data[loc][0] == data[loc][2]:
         corr += 1
       role_tot += 1.0
-    print "\small{%s}\t& %.2f\t& %.2f \\\\" % (role2str[role], 100*corr/role_tot, 100*(max(1 - (role2pos_count[role]/role_tot), (role2pos_count[role]/role_tot))))
+    maj = 100*(max(1 - (role2pos_count[role]/role_tot), (role2pos_count[role]/role_tot)))
+    hyp_mod = 100*corr/role_tot
+    print "\small{%s}\t& %.2f\t& %.2f & %.2f\\%% \\\\" % (role2str[role], hyp_mod, maj, 100 * ((hyp_mod/maj) - 1))
+    #print "\small{%s}\t& %.2f\t& %.2f & %.2f\%  \\\\" % (role2str[role], 100*corr/role_tot, 100*(max(1 - (role2pos_count[role]/role_tot), (role2pos_count[role]/role_tot))), ((100*corr/role_tot) / 100*(max(1 - (role2pos_count[role]/
+    #role_tot), (role2pos_count[role]/role_tot)))) - 100   )
     if 1 - (role2pos_count[role]/role_tot) <  (role2pos_count[role]/role_tot):
       maj_entailed += 1
   print "For %.2f percent of the roles, the majority label was entailed." % (100 * maj_entailed / len(role2idx))
