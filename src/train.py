@@ -275,7 +275,7 @@ def main(args):
   nli_model_configs = get_model_configs(args, len(word_vecs))
 
   lbls_file = args.train_lbls_file
-  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file:
+  if "mpe" in lbls_file or "snli" in lbls_file or "multinli" in lbls_file or "sick" in lbls_file or "joci" in lbls_file:
     nli_model_configs["n_classes"] = 3
   elif "spr" in lbls_file or "dpr" in lbls_file or "fnplus" in lbls_file or "add_one" in lbls_file or "scitail" in lbls_file:
     nli_model_configs["n_classes"] = 2
