@@ -93,7 +93,6 @@ def main():
 
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
-    data.to_pickle("sentences.pkl")
     df, vocab = get_vocab_counts(data)
     df.to_pickle("tokens_count.pkl") 
     #pdb.set_trace()
