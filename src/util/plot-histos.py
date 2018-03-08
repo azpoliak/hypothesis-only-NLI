@@ -24,7 +24,7 @@ def hist(df, label, correct):
   plt.ylabel("Count")
   plt.xlabel("Token")
   plt.title("Histogram of token counts: " + label + "/" + correct)
-  plt.savefig("histo_token_counts"+label+"_"+correct)
+  plt.savefig("histo_token_counts_"+label+"_"+correct)
 
 
 def main():
