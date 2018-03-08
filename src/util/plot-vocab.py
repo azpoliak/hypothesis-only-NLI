@@ -9,6 +9,7 @@ def get_args():
   parser.add_argument('--hyp_src', type=str, help='File containing the hypothesis sentences')
   #/export/b02/apoliak/nli-hypothes-only/targeted-nli/cl_sprl_
   parser.add_argument('--data_split', type=str, help='Which split of datset is being used')
+  parser.add_argument('--preds', type=int, help="Determine whether tosplit based on predictions or not")
 
   args = parser.parse_args()
   return args
@@ -47,17 +48,10 @@ def get_sents(gold_f, pred_f, hyp_f, data_split):
         sents["wrong"][gold_lbl] = []
       sents["wrong"][gold_lbl].append(hyp_srcs[i].split("|||")[-1].strip())
 
-
-  for key in correct:  
-    print "%s Accuracy on %s: %f" % (data_split, key, correct[key] / float(tot_lbl[key]))
-  for key in tot_lbl:  
-    print "%s MAJ on %s: %f" % (data_split, key, tot_lbl[key] / float(tot_lbl['total']))
-  print
-
   return sents
 
-def get_vocab_counts(data):
-  all_vocab = set()
+def get_vocab_counts(data, use_preds):
+  all_vocab = {}
   vocab_counts = {'correct': {}, 'wrong': {}}
   for key in data:
     for lbl in data[key]:
@@ -68,13 +62,32 @@ def get_vocab_counts(data):
           if word not in vocab_counts[key][lbl]:
             vocab_counts[key][lbl][word] = 0
           vocab_counts[key][lbl][word] += 1
+          if word not in all_vocab:
+            all_vocab[word] = 0
+          all_vocab[word] += 1
           
+  df = None
+  if not use_preds:
+    df = pd.DataFrame(columns=['gold-lbl', 'word', 'count'])
+    for word in all_vocab:
+      for lbl in set(vocab_counts['correct'].keys() + vocab_counts['wrong'].keys()):
+        correct, wrong = 0, 0
+        if lbl in vocab_counts['correct']:
+          if word in vocab_counts['correct'][lbl]:
+            correct = vocab_counts['correct'][lbl][word]
+        if lbl in vocab_counts['wrong']:
+          if word in vocab_counts['wrong'][lbl]:
+            wrong = vocab_counts['wrong'][lbl][word]
+        count = (correct + wrong) / float(all_vocab[word])
+        df = df.append({'gold-lbl': lbl, 'word': word, 'count': count}, ignore_index = True)
+
+    return df, all_vocab
 
   df = pd.DataFrame(columns=['gold-lbl', 'correct', 'word', 'count'])
   for correct in vocab_counts:
     for lbl in vocab_counts[correct]:
       for word in vocab_counts[correct][lbl]:
-        all_vocab.add(word)
+        #all_vocab.add(word)
         df = df.append({'gold-lbl': lbl, 'correct': correct, 'word': word, 'count': vocab_counts[correct][lbl][word]}, ignore_index=True)
         
   for correct in vocab_counts:
@@ -93,9 +106,9 @@ def main():
 
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
-    df, vocab = get_vocab_counts(data)
+    df, vocab = get_vocab_counts(data, args.preds)
+    pdb.set_trace()
     df.to_pickle("tokens_count.pkl") 
-    #pdb.set_trace()
 
 
 if __name__ == '__main__':
