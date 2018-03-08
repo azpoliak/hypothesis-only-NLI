@@ -56,11 +56,11 @@ def main():
   args = get_args()
 
   lbls = ["entailment", "neutral", "contradiction"]
-  correct = ["correct", "wrong"]
+  correct = ['', "wrong"]
 
   for lbl in lbls:
     for c in correct:
-      filename = str(str(args.nli_data)+"_"+lbl+"_"+str(args.data_split)+".txt")
+      filename = str(str(args.nli_data)+"_"+lbl+"_"+str(args.data_split)+correct+".txt")
 
       len_distr = calc(filename)
       hist(len_distr, lbl, c)
