@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-from textblob import TextBlob as tb
+#from textblob import TextBlob as tb
 
 def tf(word, blob):
     return blob.words.count(word) / len(blob.words)
@@ -45,6 +45,24 @@ def hist(distr, label, correct):
   plt.xlabel("# Sentences")
   plt.title("Histogram of sentence lengths: " + label + "/" + correct)
   plt.savefig("histo_sentence_lengths_"+label+"_"+correct)
+
+
+def combo_hist(distrs, lbls, corrects):
+  y = [None]*6
+  plt.figure(figsize=(20,10))
+  color = ['b', 'g', 'r', 'c', 'm', 'y']
+  for i in xrange(6):
+    y[i] = distrs[i].values()
+    for j in range(len(distrs[i].values()), 60):
+      y[i].append(0)
+
+    plt.bar([item-1+i/6 for item in xrange(20)], y[i][:20], width=0.2,color=color[i],align='center', label=lbls[i%3]+"_"+corrects[i//3])
+
+  plt.ylabel("Sentence length")
+  plt.xlabel("# Sentences")
+  plt.title("Histogram of sentence lengths")
+  plt.legend()
+  plt.savefig("combo_histo_sentence_lengths")
 
 
 def sent_len(filename):
@@ -126,19 +144,10 @@ def tf_idf(filename):
       print("\tWord: {}, TF-IDF: {}".format(word, round(score, 5)))
 
 
-
-
-
-
-
-
-
-
-
-
-
 def main():
   args = get_args()
+  
+  len_distrs = []
 
   lbls = ["entailment", "neutral", "contradiction"]
   correct = ["correct", "wrong"]
@@ -149,11 +158,13 @@ def main():
       if c == "correct": c1 = ''
       filename = str(str(args.nli_data)+"_"+lbl+"_"+str(args.data_split)+c1+".txt")
 
-      #len_distr = sent_len(filename)
+      len_distr = sent_len(filename)
+      len_distrs.append(len_distr)
+      #tf_idf_repr = tf_idf(filename)
       #hist(len_distr, lbl, c)
-      tf_idf_repr = tf_idf(filename)
-      print len(tf_idf_repr[0])
-  #plt.show()  
+
+  combo_hist(len_distrs, lbls, correct)
+  plt.show()  
   
 
 if __name__ == '__main__':
