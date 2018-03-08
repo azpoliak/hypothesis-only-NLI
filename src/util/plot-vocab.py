@@ -9,7 +9,12 @@ def get_args():
   parser.add_argument('--hyp_src', type=str, help='File containing the hypothesis sentences')
   #/export/b02/apoliak/nli-hypothes-only/targeted-nli/cl_sprl_
   parser.add_argument('--data_split', type=str, help='Which split of datset is being used')
+  parser.add_argument('--data_src', type=str, help='Which dataset is being used')
+
   parser.add_argument('--preds', type=int, help="Determine whether tosplit based on predictions or not")
+  parser.add_argument('--vocab_thresh', type=int, default=25, help="Only include words that appear this many times")
+  parser.add_argument('--percent_keep', type=int, default=40, help="Only keep words high percentages higher than this")
+  parser.add_argument('--top_k', type=int, default=100, help="Top k examples to keep. k=100")
 
   args = parser.parse_args()
   return args
@@ -50,8 +55,10 @@ def get_sents(gold_f, pred_f, hyp_f, data_split):
 
   return sents
 
-def get_vocab_counts(data, use_preds):
+def get_vocab_counts(data, use_preds, threshold, threshold_percent):
   all_vocab = {}
+  threshold_percent = threshold_percent / 100.0
+  print threshold_percent
   vocab_counts = {'correct': {}, 'wrong': {}}
   for key in data:
     for lbl in data[key]:
@@ -68,7 +75,7 @@ def get_vocab_counts(data, use_preds):
           
   df = None
   if not use_preds:
-    df = pd.DataFrame(columns=['gold-lbl', 'word', 'count'])
+    df = pd.DataFrame(columns=['gold-lbl', 'word', 'count', 'total'])
     for word in all_vocab:
       for lbl in set(vocab_counts['correct'].keys() + vocab_counts['wrong'].keys()):
         correct, wrong = 0, 0
@@ -79,7 +86,8 @@ def get_vocab_counts(data, use_preds):
           if word in vocab_counts['wrong'][lbl]:
             wrong = vocab_counts['wrong'][lbl][word]
         count = (correct + wrong) / float(all_vocab[word])
-        df = df.append({'gold-lbl': lbl, 'word': word, 'count': count}, ignore_index = True)
+        if all_vocab[word] >= threshold and count >= threshold_percent:
+          df = df.append({'gold-lbl': lbl, 'word': word, 'count': count, 'total': all_vocab[word]}, ignore_index = True)
 
     return df, all_vocab
 
@@ -106,9 +114,14 @@ def main():
 
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
-    df, vocab = get_vocab_counts(data, args.preds)
-    pdb.set_trace()
-    df.to_pickle("tokens_count.pkl") 
+    df, vocab = get_vocab_counts(data, args.preds, args.vocab_thresh, args.percent_keep)
+    df = df.sort_values(by=['count', 'total'], ascending=False)
+    df = df.head(args.top_k)
+    html = df.to_html()
+    f_out = open("%s_top%d_mincount%d_minpercent%d.html" % (args.data_src, args.top_k, args.vocab_thresh, args.percent_keep), "wb")
+    f_out.write(html)
+    f_out.close() 
+    df.to_pickle("%s_tokens_count.pkl" % (args.data_src)) 
 
 
 if __name__ == '__main__':
