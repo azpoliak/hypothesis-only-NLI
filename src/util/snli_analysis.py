@@ -62,7 +62,7 @@ def main():
     for c in correct:
       c1 = "wrong"
       if c == "correct": c1 = ''
-      filename = str(str(args.nli_data)+"_"+lbl+"_"+str(args.data_split)+c1+".txt")
+      filename = str(str(args.nli_data)+"_"+lbl+"_"+str(args.data_split)+"_"+c1+".txt")
 
       len_distr = calc(filename)
       hist(len_distr, lbl, c)
