@@ -5,7 +5,7 @@ import pandas as pd
 def get_args():
   parser = argparse.ArgumentParser(description='Evaluate NLI based on prediction files.')
   parser.add_argument('--gold_lbl', type=str, help='The gold train labels file')
-  parser.add_argument('--pred_lbl', type=str, help='The gold dev labels file')
+  parser.add_argument('--pred_lbl', type=str, help='The predicted labels file')
   parser.add_argument('--hyp_src', type=str, help='File containing the hypothesis sentences')
   #/export/b02/apoliak/nli-hypothes-only/targeted-nli/cl_sprl_
   parser.add_argument('--data_split', type=str, help='Which split of datset is being used')
@@ -93,6 +93,7 @@ def main():
 
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
+    data.to_pickle("sentences.pkl")
     df, vocab = get_vocab_counts(data)
     df.to_pickle("tokens_count.pkl") 
     #pdb.set_trace()
