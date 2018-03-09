@@ -108,11 +108,9 @@ def get_vocab_counts(data, use_preds, threshold, threshold_percent):
   return df, all_vocab
 
 
-def get_sent_lens(data, use_preds, threshold_percent):
+def get_sent_lens(data, use_preds):
  
   all_lens = {}
-  threshold_percent = threshold_percent / 100.0
-  print threshold_percent
   sent_lens = {'correct': {}, 'wrong': {}}
   
   for key in data:
@@ -141,8 +139,7 @@ def get_sent_lens(data, use_preds, threshold_percent):
           if l in sent_lens['wrong'][lbl]:
             wrong = sent_lens['wrong'][lbl][l]
         count = (correct + wrong) / float(all_lens[l])
-        if count >= threshold_percent:
-          df = df.append({'gold-lbl': lbl, 'len': l, 'count': count, 'total': all_lens[l]}, ignore_index = True)
+        df = df.append({'gold-lbl': lbl, 'len': l, 'count': count, 'total': all_lens[l]}, ignore_index = True)
 
     return df, all_lens
 
@@ -175,12 +172,12 @@ def main():
     f_out.write(html)
     f_out.close() 
 
-    df2, lengths = get_sent_lens(data, args.preds, args.percent_keep)
+    df2, lengths = get_sent_lens(data, args.preds)
     df2 = df2.sort_values(by=['count', 'total'], ascending=False)
     df2 = df2.head(args.top_k)
     html2 = df2.to_html()
-    f_out2 = open("%s_top%d__minpercent%d_lens.html" % (args.data_src, args.top_k, args.percent_keep), "wb")
-    f_out2.write(html)
+    f_out2 = open("%s_top%d_lens.html" % (args.data_src, args.top_k), "wb")
+    f_out2.write(html2)
     f_out2.close()
 
     df.to_pickle("%s_tokens_count.pkl" % (args.data_src)) 
