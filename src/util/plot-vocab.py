@@ -9,7 +9,6 @@ def get_args():
   parser.add_argument('--gold_lbl', type=str, help='The gold train labels file')
   parser.add_argument('--pred_lbl', type=str, help='The predicted labels file')
   parser.add_argument('--hyp_src', type=str, help='File containing the hypothesis sentences')
-  #/export/b02/apoliak/nli-hypothes-only/targeted-nli/cl_sprl_
   parser.add_argument('--data_split', type=str, help='Which split of datset is being used')
   parser.add_argument('--data_src', type=str, help='Which dataset is being used')
 
@@ -199,6 +198,7 @@ def main():
 
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
+<<<<<<< HEAD
     #df, vocab = get_vocab_counts(data, args.preds, args.vocab_thresh, args.percent_keep)
     df = get_plot(data, args.vocab_thresh)
     #df_sorted = df.sort_values(by=['percent', 'total'], ascending=False)
@@ -221,6 +221,18 @@ def main():
     #f_out.write(html)
     #f_out.close() 
     '''
+=======
+    df, vocab = get_vocab_counts(data, args.preds, args.vocab_thresh, args.percent_keep)
+    df = df.sort_values(by=['count', 'total'], ascending=False)
+    df = df.head(args.top_k)
+    html = df.to_html()
+    f_out = open("%s_top%d_mincount%d_minpercent%d_words.html" % (args.data_src, args.top_k, args.vocab_thresh, args.percent_keep), "wb")
+    f_out.write(html)
+    f_out.close() 
+
+    df.to_pickle("%s_tokens_count.pkl" % (args.data_src)) 
+
+>>>>>>> 43419dea6b2011e9cb3180ffc2f7f8a73844994f
 
 if __name__ == '__main__':
   main()
