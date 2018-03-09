@@ -16,6 +16,7 @@ def get_args():
   parser.add_argument('--vocab_thresh', type=int, default=25, help="Only include words that appear this many times")
   parser.add_argument('--percent_keep', type=int, default=40, help="Only keep words high percentages higher than this")
   parser.add_argument('--top_k', type=int, default=500, help="Top k examples to keep. k=100")
+  parser.add_argument('--outdir', type=str, default="",  help="Path to save the pickle files")
 
   args = parser.parse_args()
   return args
@@ -198,11 +199,11 @@ def main():
 
   if args.gold_lbl and args.pred_lbl and args.hyp_src:
     data = get_sents(args.gold_lbl, args.pred_lbl, args.hyp_src, args.data_split)
-<<<<<<< HEAD
     #df, vocab = get_vocab_counts(data, args.preds, args.vocab_thresh, args.percent_keep)
     df = get_plot(data, args.vocab_thresh)
-    #df_sorted = df.sort_values(by=['percent', 'total'], ascending=False)
-    df.to_pickle("%s_sents_prob_count.pkl" % (args.data_src)) 
+    df.to_pickle("%s/%s_sents_prob_count.pkl" % (args.outdir, args.data_src)) 
+
+
     '''
     #for lbl in set(df_sorted['gold-lbl']):
       #df = df_sorted[df_sorted['gold-lbl'] == lbl]
@@ -221,18 +222,6 @@ def main():
     #f_out.write(html)
     #f_out.close() 
     '''
-=======
-    df, vocab = get_vocab_counts(data, args.preds, args.vocab_thresh, args.percent_keep)
-    df = df.sort_values(by=['count', 'total'], ascending=False)
-    df = df.head(args.top_k)
-    html = df.to_html()
-    f_out = open("%s_top%d_mincount%d_minpercent%d_words.html" % (args.data_src, args.top_k, args.vocab_thresh, args.percent_keep), "wb")
-    f_out.write(html)
-    f_out.close() 
-
-    df.to_pickle("%s_tokens_count.pkl" % (args.data_src)) 
-
->>>>>>> 43419dea6b2011e9cb3180ffc2f7f8a73844994f
 
 if __name__ == '__main__':
   main()
