@@ -13,7 +13,6 @@ def get_args():
 
   parser.add_argument('--preds', type=int, help="Determine whether tosplit based on predictions or not")
   parser.add_argument('--vocab_thresh', type=int, default=25, help="Only include words that appear this many times")
-  parser.add_argument('--len_thresh', type=int, default=5, help="Only include sentences that are this long")
   parser.add_argument('--percent_keep', type=int, default=40, help="Only keep high percentages higher than this")
   parser.add_argument('--top_k', type=int, default=100, help="Top k examples to keep. k=100")
 
@@ -109,7 +108,7 @@ def get_vocab_counts(data, use_preds, threshold, threshold_percent):
   return df, all_vocab
 
 
-def get_sent_lens(data, use_preds, threshold, threshold_percent):
+def get_sent_lens(data, use_preds, threshold_percent):
  
   all_lens = {}
   threshold_percent = threshold_percent / 100.0
@@ -142,7 +141,7 @@ def get_sent_lens(data, use_preds, threshold, threshold_percent):
           if l in sent_lens['wrong'][lbl]:
             wrong = sent_lens['wrong'][lbl][l]
         count = (correct + wrong) / float(all_lens[l])
-        if all_lens[l] >= threshold and count >= threshold_percent:
+        if count >= threshold_percent:
           df = df.append({'gold-lbl': lbl, 'len': l, 'count': count, 'total': all_lens[l]}, ignore_index = True)
 
     return df, all_lens
@@ -176,11 +175,11 @@ def main():
     f_out.write(html)
     f_out.close() 
 
-    df2, lengths = get_sent_lens(data, args.preds, args.len_thresh, args.percent_keep)
+    df2, lengths = get_sent_lens(data, args.preds, args.percent_keep)
     df2 = df2.sort_values(by=['count', 'total'], ascending=False)
     df2 = df2.head(args.top_k)
     html2 = df2.to_html()
-    f_out2 = open("%s_top%d_mincount%d_minpercent%d_lens.html" % (args.data_src, args.top_k, args.len_thresh, args.percent_keep), "wb")
+    f_out2 = open("%s_top%d__minpercent%d_lens.html" % (args.data_src, args.top_k, args.percent_keep), "wb")
     f_out2.write(html)
     f_out2.close()
 
