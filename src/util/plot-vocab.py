@@ -180,7 +180,7 @@ def main():
     df2 = df2.sort_values(by=['count', 'total'], ascending=False)
     df2 = df2.head(args.top_k)
     html2 = df2.to_html()
-    f_out2 = open("%s_top%d_mincount%d_minpercent%d_lens.html" % (args.data_src, args.top_k, args.vocab_thresh, args.percent_keep), "wb")
+    f_out2 = open("%s_top%d_mincount%d_minpercent%d_lens.html" % (args.data_src, args.top_k, args.len_thresh, args.percent_keep), "wb")
     f_out2.write(html)
     f_out2.close()
 
