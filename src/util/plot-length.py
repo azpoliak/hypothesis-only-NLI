@@ -113,9 +113,9 @@ def main():
     df2, lengths = get_sent_lens(data, args.preds)
     df2 = df2.sort_values(by=['count', 'total'], ascending=False)
     df2 = df2.head(args.top_k)
-    html2 = df2.to_html()
-    f_out2 = open("%s_top%d_lens.html" % (args.data_src, args.top_k), "wb")
-    f_out2.write(html2)
+    csv2 = df2.to_csv()
+    f_out2 = open("%s_top%d_lens.csv" % (args.data_src, args.top_k), "wb")
+    f_out2.write(csv2)
     f_out2.close()
 
 
