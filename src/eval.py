@@ -35,6 +35,7 @@ def get_args():
   parser.add_argument("--max_train_sents", type=int, default=10000000, help="Maximum number of training examples")
   parser.add_argument("--max_val_sents", type=int, default=10000000, help="Maximum number of validation/dev examples")
   parser.add_argument("--max_test_sents", type=int, default=10000000, help="Maximum number of test examples")
+  parser.add_argument("--lorelei_embds", type=int, default=0, help="Whether to use multilingual embeddings released for LORELEI. This requires cleaning up words since wordsare are prefixed with the language. 0 for no, 1 for yes (Default is 0)")
 
   # model
   parser.add_argument("--encoder_type", type=str, default='BLSTMEncoder', help="see list of encoders")
@@ -117,7 +118,7 @@ def main(args):
                                     args.val_src_file, args.test_lbls_file, args.test_src_file, \
                                     args.max_train_sents, args.max_val_sents, args.max_test_sents)
 
-  word_vecs = build_vocab(train['hypoths'] + val['hypoths'] + test['hypoths'] , args.embdfile)
+  word_vecs = build_vocab(train['hypoths'] + val['hypoths'] + test['hypoths'] , args.embdfile, args.lorelei_embds)
   args.word_emb_dim = len(word_vecs[word_vecs.keys()[0]])
 
   lbls_file = args.train_lbls_file

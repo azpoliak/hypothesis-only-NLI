@@ -32,9 +32,12 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split, remove_dup):
   lbls = open(lbls_file).readlines()
   srcs = open(srcs_file).readlines()
 
+  '''
   hyps_set = set()
   if remove_dup:
     hyps_set = get_duplicate_hypths(srcs)
+  '''
+  used_hyps = set()
 
   assert (len(lbls) == len(srcs), "%s: %s labels and source files are not same length" % (lbls_file, data_split))
   num_duplicate_hyps = 0
@@ -44,9 +47,10 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split, remove_dup):
     lbl = lbls[i].strip()
     hypoth = srcs[i].split("|||")[-1].strip()
 
-    if remove_dup and hypoth in hyps_set:
-      num_duplicate_hyps += 1
-      continue
+    if remove_dup:
+      if hypoth in used_hyps: 
+        num_duplicate_hyps += 1
+        continue
 
     if lbl not in labels_to_int:
       print "bad label: %s" % (lbl)
@@ -58,6 +62,9 @@ def extract_from_file(lbls_file, srcs_file, max_sents, data_split, remove_dup):
     data['lbls'].append(labels_to_int[lbl])
     data['hypoths'].append(hypoth)  
     added_sents += 1
+
+    if remove_dup:
+      used_hyps.add(hypoth)
 
   if remove_dup:
     print "Removed %d duplicate hypotheses out of %d total" % (num_duplicate_hyps, len(lbls))
@@ -82,11 +89,13 @@ def get_vocab(txt):
       vocab.add(word)
   return vocab
 
-def get_word_vecs(vocab, embdsfile):
+def get_word_vecs(vocab, embdsfile, lorelei_embds=False):
   word_vecs = {}
   with open(embdsfile) as f:
     for line in f:
       word, vec = line.split(' ', 1)
+      if lorelei_embds:
+        word = word[4:]
       if word in vocab:
         word_vecs[word] = np.array(list(map(float, vec.split())))
   print('Found {0}(/{1}) words with vectors'.format(
@@ -95,10 +104,10 @@ def get_word_vecs(vocab, embdsfile):
 
 
 
-def build_vocab(txt, embdsfile):
+def build_vocab(txt, embdsfile, lorelei_embds=False):
   vocab = get_vocab(txt)
   vocab.add("OOV")
-  word_vecs = get_word_vecs(vocab, embdsfile)
+  word_vecs = get_word_vecs(vocab, embdsfile, lorelei_embds)
   print('Vocab size : {0}'.format(len(word_vecs)))
   return word_vecs 
 
