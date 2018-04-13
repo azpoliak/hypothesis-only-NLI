@@ -40,7 +40,12 @@ To see a description of more command line arguments, run `src/train.py --help`.
 If you use our code, please cite us using the following citation
 
 ```
-Enter bibtex here
+@inproceedings{hypothsesis-only-nli-baselines,
+  author = {Poliak, Adam and Naradowsky, Jason and Haldar, Aparajita and Rudinger, Rachel and {Van Durme}, Benjamin},
+  title = {Hypothesis Only Baselines for Natural Language Inference},
+  booktitle = {The Seventh Joint Conference on Lexical and Computational Semantics (*SEM)},
+  year = {2018}
+}
 ```
 
 We additionally provide the bibliographies for the datasets that we use as well. If you use any of those datasets, please cite them as well.
