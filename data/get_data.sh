@@ -1,11 +1,11 @@
-#mkdir rte
-#cd rte
-#wget http://decomp.net/wp-content/uploads/2017/11/inference_is_everything.zip
-#unzip inference_is_everything.zip
-#rm inference_is_everything.zip
-#cd ../
+mkdir rte
+cd rte
+wget http://decomp.io/projects/diverse-natural-language-inference/https://github.com/decompositional-semantics-initiative/DNC/raw/master/inference_is_everything.zip
+unzip inference_is_everything.zip
+rm inference_is_everything.zip
+cd ../
 #echo "About to split the data into formats for train.lua and eval.lua"
-#python split-data.py
+python split-data.py
 
 echo "Downloading SNLI"
 wget https://nlp.stanford.edu/projects/snli/snli_1.0.zip
