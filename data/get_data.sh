@@ -5,7 +5,7 @@ unzip inference_is_everything.zip
 rm inference_is_everything.zip
 cd ../
 #echo "About to split the data into formats for train.lua and eval.lua"
-python split-data.py
+python convert_recast_white.py
 
 echo "Downloading SNLI"
 wget https://nlp.stanford.edu/projects/snli/snli_1.0.zip
