@@ -1,6 +1,6 @@
 mkdir rte
 cd rte
-wget http://decomp.io/projects/diverse-natural-language-inference/https://github.com/decompositional-semantics-initiative/DNC/raw/master/inference_is_everything.zip
+wget https://github.com/decompositional-semantics-initiative/DNC/raw/master/inference_is_everything.zip
 unzip inference_is_everything.zip
 rm inference_is_everything.zip
 cd ../
@@ -67,7 +67,8 @@ python convert_scitail.py
 echo "Downloading JOCI"
 mkdir joci
 cd joci
-wget http://decomp.net/wp-content/uploads/2015/08/joci.zip
+wget http://decomp.io/projects/common-sense-inference/joci-A.zip
+wget http://decomp.io/projects/common-sense-inference/joci-B.zip
 unzip joci.zip
 cd data
 tar -zxvf joci.tar.gz
