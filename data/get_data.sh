@@ -65,6 +65,7 @@ cd ../
 python convert_scitail.py
 
 echo "Downloading JOCI"
+echo "Need to fix extracting JOCI"
 mkdir joci
 cd joci
 wget http://decomp.io/projects/common-sense-inference/joci-A.zip
