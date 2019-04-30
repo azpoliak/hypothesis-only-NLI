@@ -69,11 +69,11 @@ cd ../
 python convert_scitail.py
 
 echo "Downloading JOCI"
-echo "Need to fix extracting JOCI"
 mkdir joci
 cd joci
-wget http://decomp.io/projects/common-sense-inference/joci-A.zip
-wget http://decomp.io/projects/common-sense-inference/joci-B.zip
-unzip joci.zip
-cd data
-tar -zxvf joci.tar.gz
+git clone https://github.com/sheng-z/JOCI.git
+unzip JOCI/data/joci.csv.zip
+rm -rf JOCI
+cd ../
+python data/convert_joci.py
+rm joci/joci.csv
