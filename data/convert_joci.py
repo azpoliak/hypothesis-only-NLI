@@ -13,7 +13,7 @@ def convert_lbl(num):
 
 lbl_count = {}
 
-with open('joci/data/joci.csv', 'rb') as csvfile:
+with open('joci/joci.csv', 'rb') as csvfile:
   pairs = []
   spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
   line_num = -1

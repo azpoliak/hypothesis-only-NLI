@@ -2,7 +2,7 @@ import pandas as pd
 import nltk
 
 for f in ["train", "dev", "test"]:
-  df = pd.read_table("snli_1.0/snli_1.0_%s.txt" % (f))
+  df = pd.read_csv("snli_1.0/snli_1.0_%s.txt" % (f), sep="\t")
   if f == "dev":
     f = "val"
 
