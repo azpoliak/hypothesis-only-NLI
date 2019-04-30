@@ -5,14 +5,15 @@ unzip inference_is_everything.zip
 rm inference_is_everything.zip
 cd ../
 #echo "About to split the data into formats for train.lua and eval.lua"
-python convert_recast_white.py
+python data/convert_recast_white.py
 
 echo "Downloading SNLI"
 wget https://nlp.stanford.edu/projects/snli/snli_1.0.zip
 unzip snli_1.0.zip
+rm snli_1.0.zip
 
 echo "Reformatting SNLI dataset"
-python convert_snli.py
+python data/convert_snli.py
 
 echo "Downloading GloVe"
 mkdir embds
@@ -38,6 +39,7 @@ mkdir mpe
 curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_train.txt -o mpe/mpe_train.txt
 curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_dev.txt -o mpe/mpe_dev.txt
 curl https://raw.githubusercontent.com/aylai/MultiPremiseEntailment/master/data/MPE/mpe_test.txt -o mpe/mpe_test.txt
+python data/convert_mpe.py
 
 echo "Downloading add-1 RTE"
 mkdir add-one-rte
@@ -45,6 +47,8 @@ cd add-one-rte
 wget http://www.seas.upenn.edu/~nlp/resources/AN-composition.tgz
 tar -zxvf AN-composition.tgz 
 rm AN-composition.tgz 
+cd ../
+python data/convert_add_1_rte.py
 
 echo "Downloading SICK"
 mkdir sick
@@ -53,7 +57,7 @@ wget http://clic.cimec.unitn.it/composes/materials/SICK.zip
 unzip SICK.zip
 rm SICK.zip
 cd ../
-python convert_sick.py
+python data/convert_sick.py
 
 echo "Downloading SciTail"
 mkdir scitail
