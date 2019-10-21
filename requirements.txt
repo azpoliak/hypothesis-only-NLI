@@ -11,7 +11,7 @@ kiwisolver==1.0.1
 matplotlib==2.2.0
 mkl-fft==1.0.4
 mkl-random==1.0.1
-nltk==3.3
+nltk==3.4.5
 numpy==1.15.0
 pandas==0.23.3
 psutil==5.4.5
