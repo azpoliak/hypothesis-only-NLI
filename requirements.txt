@@ -26,4 +26,4 @@ sklearn==0.0
 stanfordcorenlp==3.8.0.1
 subprocess32==3.2.7
 torch==0.3.0.post4
-urllib3==1.22
+urllib3==1.26.5
