@@ -1,5 +1,5 @@
 backports.functools-lru-cache==1.5
-certifi==2018.4.16
+certifi==2022.12.7
 cffi==1.10.0
 chardet==3.0.4
 conllu==0.8
